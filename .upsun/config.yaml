@@ -21,6 +21,8 @@ applications:
                 pnpm build
             deploy: |
                 set -e
+                # DATABASE_URL für Prisma setzen
+                export DATABASE_URL="postgresql://${POSTGRESDATABASE_USERNAME}:${POSTGRESDATABASE_PASSWORD}@${POSTGRESDATABASE_HOST}:${POSTGRESDATABASE_PORT}/${POSTGRESDATABASE_PATH}"
                 pnpm update-db
 
         # Writable Mounts für Uploads
@@ -32,13 +34,18 @@ applications:
         # Webserver-Konfiguration
         web:
             commands:
-                start: 'pnpm start'
+                # Source .environment vor dem Start um DATABASE_URL zu setzen
+                start: |
+                    export DATABASE_URL="postgresql://${POSTGRESDATABASE_USERNAME}:${POSTGRESDATABASE_PASSWORD}@${POSTGRESDATABASE_HOST}:${POSTGRESDATABASE_PORT}/${POSTGRESDATABASE_PATH}"
+                    pnpm start
 
         # Beziehung zur PostgreSQL-Datenbank
         relationships:
             postgresdatabase: 'dbpostgres:postgresql'
 
 # Service-Definitionen
+# Hinweis: Ressourcen (CPU, RAM, Disk) werden bei Upsun über die
+# Konsole oder CLI verwaltet, nicht in dieser Konfigurationsdatei.
 services:
     dbpostgres:
         type: postgresql:16
